@@ -55,8 +55,22 @@
       </div>
 
       <div>
-        <label>&nbsp;</label>
-        <button class="btn" id="calc">Calculate</button>
+        <div>
+  <label for="currency">Currency</label>
+  <select id="currency">
+    <option value="USD">USD ($)</option>
+    <option value="EUR">EUR (€)</option>
+    <option value="GBP">GBP (£)</option>
+    <option value="CAD">CAD ($)</option>
+    <option value="AUD">AUD ($)</option>
+  </select>
+</div>
+
+<div>
+  <label>&nbsp;</label>
+  <button class="btn" id="calc">Calculate</button>
+</div>
+
       </div>
     </div>
 
@@ -79,11 +93,15 @@
   </div>
 
   <script>
-    function toMoney(n){
-      if(!isFinite(n)) return "—";
-      // Currency is just display; next step we make it selectable
-      return new Intl.NumberFormat(undefined,{style:"currency",currency:"USD"}).format(n);
-    }
+function toMoney(n){
+  if(!isFinite(n)) return "—";
+  const currency = document.getElementById("currency").value;
+  return new Intl.NumberFormat(undefined,{
+    style:"currency",
+    currency:currency
+  }).format(n);
+}
+
     function daysBetween(start, end){
       const s = new Date(start + "T00:00:00");
       const e = new Date(end + "T00:00:00");
@@ -133,3 +151,4 @@
   </script>
 </body>
 </html>
+
