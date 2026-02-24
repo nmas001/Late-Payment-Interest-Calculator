@@ -1,1 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Late Payment Interest Calculator (Simple & Compound)</title>
+  <meta name="description" content="Calculate late payment interest for overdue invoices using simple or daily compound interest. Get days overdue, interest, and total instantly." />
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;max-width:860px;margin:0 auto;padding:24px;line-height:1.35}
+    .card{border:1px solid #e5e7eb;border-radius:14px;padding:18px;margin:14px 0}
+    label{display:block;margin:10px 0 6px;font-weight:600}
+    input,select{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;font-size:16px}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
+    button{padding:12px 14px;border:0;border-radius:12px;font-size:16px;cursor:pointer}
+    .btn{background:#111827;color:#fff}
+    .muted{color:#6b7280}
+    .result{font-size:18px}
+    .row{display:flex;justify-content:space-between;gap:12px}
+    .row div{flex:1}
+    .note{background:#f9fafb;border:1px dashed #d1d5db;border-radius:12px;padding:12px}
+    .warn{color:#b45309}
+  </style>
+</head>
+<body>
+  <h1>Late Payment Interest Calculator</h1>
+  <p class="muted">Instantly calculate interest on overdue payments (simple or daily compound). This is an estimation tool and not legal advice.</p>
 
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label for="amount">Amount owed</label>
+        <input id="amount" type="number" step="0.01" min="0" placeholder="e.g., 2500" />
+      </div>
+      <div>
+        <label for="rate">Annual interest rate (%)</label>
+        <input id="rate" type="number" step="0.01" min="0" placeholder="e.g., 8" />
+      </div>
+
+      <div>
+        <label for="start">Start date</label>
+        <input id="start" type="date" />
+      </div>
+      <div>
+        <label for="end">End date</label>
+        <input id="end" type="date" />
+      </div>
+
+      <div>
+        <label for="type">Interest type</label>
+        <select id="type">
+          <option value="simple">Simple interest</option>
+          <option value="compound_daily">Compound (daily)</option>
+        </select>
+      </div>
+
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn" id="calc">Calculate</button>
+      </div>
+    </div>
+
+    <p class="muted">Tip: For statutory interest, use your country’s standard rate or your contract rate.</p>
+  </div>
+
+  <div class="card">
+    <h2>Results</h2>
+    <p id="errors" class="warn"></p>
+    <div class="result" id="results">
+      <div class="row"><div><strong>Days overdue</strong></div><div id="days">—</div></div>
+      <div class="row"><div><strong>Interest</strong></div><div id="interest">—</div></div>
+      <div class="row"><div><strong>Total</strong></div><div id="total">—</div></div>
+    </div>
+  </div>
+
+  <div class="card note">
+    <strong>How it’s calculated</strong>
+    <p class="muted" id="formula">—</p>
+  </div>
+
+  <script>
+    function toMoney(n){
+      if(!isFinite(n)) return "—";
+      // Currency is just display; next step we make it selectable
+      return new Intl.NumberFormat(undefined,{style:"currency",currency:"USD"}).format(n);
+    }
+    function daysBetween(start, end){
+      const s = new Date(start + "T00:00:00");
+      const e = new Date(end + "T00:00:00");
+      const ms = e - s;
+      return Math.floor(ms / (1000*60*60*24));
+    }
+
+    document.getElementById("calc").addEventListener("click", () => {
+      const amount = parseFloat(document.getElementById("amount").value);
+      const ratePct = parseFloat(document.getElementById("rate").value);
+      const start = document.getElementById("start").value;
+      const end = document.getElementById("end").value;
+      const type = document.getElementById("type").value;
+
+      const errorsEl = document.getElementById("errors");
+      errorsEl.textContent = "";
+
+      if(!amount || amount <= 0) return errorsEl.textContent = "Enter a valid amount.";
+      if(!isFinite(ratePct) || ratePct < 0) return errorsEl.textContent = "Enter a valid interest rate.";
+      if(!start || !end) return errorsEl.textContent = "Select start and end dates.";
+
+      const d = daysBetween(start, end);
+      if(d < 0) return errorsEl.textContent = "End date must be after start date.";
+      if(d === 0) return errorsEl.textContent = "Dates are the same. Days overdue = 0.";
+
+      const r = ratePct / 100;
+
+      let interest = 0;
+      let total = 0;
+      let formula = "";
+
+      if(type === "simple"){
+        interest = amount * r * (d / 365);
+        total = amount + interest;
+        formula = `Simple: Interest = Amount × Rate × (Days/365)`;
+      } else {
+        total = amount * Math.pow(1 + (r/365), d);
+        interest = total - amount;
+        formula = `Compound daily: Total = Amount × (1 + Rate/365)^Days`;
+      }
+
+      document.getElementById("days").textContent = d.toString();
+      document.getElementById("interest").textContent = toMoney(interest);
+      document.getElementById("total").textContent = toMoney(total);
+      document.getElementById("formula").textContent = formula;
+    });
+  </script>
+</body>
+</html>
