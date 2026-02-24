@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nmas001.github.io/Late-Payment-Interest-Calculator/sitemap.xml
